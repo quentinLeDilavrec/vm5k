@@ -27,7 +27,7 @@ from execo_engine import copy_outputs
 from vm5k import vm5k_deployment, define_vms, get_oar_job_vm5k_resources, \
     get_max_vms, get_oargrid_job_vm5k_resources, get_vms_slot, print_step
 from execo_g5k.api_utils import get_host_attributes, get_g5k_clusters,\
-    get_cluster_attributes
+    get_cluster_attributes, get_api_data
 
 ##############################################################################
 # INITIALIZATION
@@ -147,9 +147,17 @@ def define_elements(args):
 
 def make_reservation(vms, elements, args):
     """MANAGING RESERVATION"""
+    
+    hosts = get_api_data()['hosts'] 
+    nodes = [
+    [a for a in hosts.keys() if b in a ][0]                                
+    for b in get_g5k_clusters()]
 
-    blacklisted = filter(lambda c: not get_host_attributes(c + '-1')['supported_job_types']['virtual'],
-                     get_g5k_clusters())
+    blacklisted = [
+    a.split('-')[0]                                                                 
+    for a in nodes
+    if not hosts[a]['supported_job_types']['virtual']]
+    
     frontend = None
     print_step('Making a reservation ')
     show_resources(elements, 'Resources wanted')
